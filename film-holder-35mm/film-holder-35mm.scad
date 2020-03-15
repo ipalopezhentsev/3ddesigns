@@ -35,6 +35,9 @@ mw = 15;
 angh = film_height; //otherwise film won't fit!
 //we need glass 270x35
 
+assert(angh >= film_height, "Film won't fit into glass channel");
+
+
 total_base_height = fh+2*mh;
 full_frame_width=fw+p-g;
 full_base_width=full_frame_width*n+2*mw;
