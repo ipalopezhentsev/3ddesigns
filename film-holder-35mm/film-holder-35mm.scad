@@ -1,5 +1,7 @@
 //film holder for 35mm film used with anti-Newton glass
 
+ver="1.0";
+
 //film height
 film_height = 35; //35mm film - (34.976 ± 0.025 mm - so max is 35.001) 
 
@@ -42,7 +44,7 @@ total_base_height = fh+2*mh;
 full_frame_width=fw+p-g;
 full_base_width=full_frame_width*n+2*mw;
 
-echo("width=", full_base_width);
+echo(str("width=", full_base_width));
 
 module frame() {
     difference() {
@@ -68,7 +70,14 @@ module base() {
     //left margin
     translate([mw/2,0,0]) base_side();
     //right margin
-    translate([1.5*mw+full_frame_width*n-g,0,0]) base_side();
+    translate([1.5*mw+full_frame_width*n-g,0,0]) difference() {
+        base_side();
+        //version label
+        translate([0,0,-h1/2-g]) 
+            mirror([1,0,0])
+            rotate([0,0,90])
+            linear_extrude(h1/3) text(ver, valign="center", halign="center", size=5);
+    }
 }
 
 module lip(lip_height) {
