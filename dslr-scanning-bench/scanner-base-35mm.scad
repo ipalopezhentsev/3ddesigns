@@ -1,97 +1,47 @@
-//film holder for 35mm film used with anti-Newton glass
+//scanner plate base
 
 ver="1.0";
 
-//film height
-film_height = 35; //35mm film - (34.976 ± 0.025 mm - so max is 35.001) 
+dist_btw_hole_centers_horiz = 165;
+dist_btw_hole_centers_vert = 100;
+hole_center_to_edge_horiz = 25;
+hole_center_to_edge_vert = 40;
+thumbwheel_diameter = 20;
+hole_diameter = 14;
+expected_holder_height = 45;
+//width/height of film window
+fw = 40;
+fh = 28;
 
-//width of frame
-fw=36;
+//height of scanner base
+z=3;
 
-//height of frame
-fh=24;
-
-//width of post between frames
-p=2;//nikon f100 creates spacing of 2mm
-
-//width of margin near top and bottom of the frame
-mh=18;
-
-//height of holder base
-h1=3;
-
-//height of 'lips' that hold anti-Newton glass
-h2=1.9; //my glass has height 2mm, I want holder to rest on glass, not on plastic, because glass is smoother
-
-//gap between copies so openscad understands they form one piece
+//gap
 g=0.001;
 
-//number of frames
-n = 6;
+w = dist_btw_hole_centers_horiz + 2 * hole_center_to_edge_horiz;
+h = dist_btw_hole_centers_vert + 2 * hole_center_to_edge_vert;
 
-//width of left and right borders
-mw = 15;
+assert(expected_holder_height < dist_btw_hole_centers_vert - thumbwheel_diameter, 
+    "Film holder won't pass between thumbwheels");
+assert(fh < dist_btw_hole_centers_vert - thumbwheel_diameter,
+    "Film won't pass between thumbwheels");
+assert(thumbwheel_diameter > hole_diameter, "Thumbwheel won't clamp the plate");
 
-//anti-Newton glass height
-//angh = 32.8; //real is 33 (ordered 34!)
-angh = film_height; //otherwise film won't fit!
-//we need glass 270x35
+echo(str("width=", w, ", height=", h));
 
-assert(angh >= film_height, "Film won't fit into glass channel");
-
-
-total_base_height = fh+2*mh;
-full_frame_width=fw+p-g;
-full_base_width=full_frame_width*n+2*mw;
-
-echo(str("width=", full_base_width));
-
-module frame() {
-    difference() {
-        cube([fw+p,total_base_height, h1], center=true);
-        cube([fw, fh, h1+g*2], center=true);
-    }
+module hole() {
+    cylinder(h=z+g, r1=hole_diameter/2,
+        r2=hole_diameter/2, center=false);
 }
 
-module base_main() {
-    for (i=[0:1:n-1]) {
-        translate([full_frame_width*i,0,0]) 
-            frame();
-    }
-}
-
-module base_side() {
-    cube([mw,total_base_height,h1], center=true);
-}
-
-module base() {
-    //main base
-    translate([mw+0.5*(fw+p)-g,0,0]) base_main();
-    //left margin
-    translate([mw/2,0,0]) base_side();
-    //right margin
-    translate([1.5*mw+full_frame_width*n-g,0,0]) difference() {
-        base_side();
-        //version label
-        translate([0,0,-h1/2-g]) 
-            mirror([1,0,0])
-            rotate([0,0,90])
-            linear_extrude(h1/3) text(ver, valign="center", halign="center", size=5);
-    }
-}
-
-module lip(lip_height) {
-    cube([full_base_width, lip_height,h2]);
-}
-
-module lips() {
-    //stopper so that glass doesn't move
-    cube([mw/2,total_base_height,h2]);
-    //lips
-    lip_height = (total_base_height-angh)/2;
-    lip(lip_height);
-    translate([0,angh+lip_height,0]) lip(lip_height);
-}
-
-translate([0,total_base_height/2,h1/2]) base();
-translate([0,0,h1-g]) lips();
+translate([0,0,0]) difference() {
+    cube([w,h,z]);
+    translate([w/2,h/2,z/2]) cube([fw,fh,z+g], center=true);
+    translate([hole_center_to_edge_horiz, hole_center_to_edge_vert]) hole();
+    translate([w - hole_center_to_edge_horiz, hole_center_to_edge_vert]) hole();
+    translate([hole_center_to_edge_horiz, h - hole_center_to_edge_vert]) hole();
+    translate([w - hole_center_to_edge_horiz, h - hole_center_to_edge_vert]) hole();
+    translate([w/2,10,0]) mirror([1,0,0]) linear_extrude(z/3)
+        text(ver, valign="center", halign="center", size=5);
+};
